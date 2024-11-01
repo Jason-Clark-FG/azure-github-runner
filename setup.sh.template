@@ -2,6 +2,7 @@
 set -Eeuxo pipefail
 
 ## Variables
+SCRIPT_EXTRA_ACTION="${1:-}"
 GH_USER="${GH_USER:-$(id -un)}"
 GH_RUNNER_DIR="${GH_RUNNER_DIR:-actions-runner}"
 
@@ -13,7 +14,7 @@ if [[ $UID = 0 ]]; then
     exit 0
 fi
 
-if [[ $1 = '--destroy' ]]; then
+if [[ ${SCRIPT_EXTRA_ACTION} == '--destroy' ]]; then
     cd "${HOME}/${GH_RUNNER_DIR}"
     sudo ./svc.sh uninstall
     ./config.sh remove --token {{token}}
