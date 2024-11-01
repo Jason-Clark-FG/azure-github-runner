@@ -29,9 +29,9 @@ on:
       uniq_label:
         value: ${{ jobs.create.outputs.uniq_label }}
 
-permissions:
-  id-token: write
-  contents: read
+# permissions:
+#   id-token: write
+#   contents: read
 
 jobs:
   create:
