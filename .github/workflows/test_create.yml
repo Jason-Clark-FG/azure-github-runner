@@ -9,9 +9,7 @@ jobs:
     with:
       VM_SIZE: "Standard_B2s"
       LOCATION: "westus2"
-      STORAGE_ACCOUNT_NAME: "sfgdwus2jcinstallmedia"
-      STORAGE_RESOURCE_GROUP_NAME: "rg-d-wus2-jclark"
-      STORAGE_ACCOUNT_ID: "/subscriptions/778fa473-26f7-4113-b2b4-ef36874931e7/resourceGroups/rg-d-wus2-jclark/providers/Microsoft.Storage/storageAccounts/sfgdwus2jcinstallmedia"
+      STORAGE_BLOB_URI: "https://sfgdwus2syspro8.blob.core.windows.net/"
     secrets:
       ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}

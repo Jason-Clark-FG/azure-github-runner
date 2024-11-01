@@ -27,9 +27,7 @@ if [[ -z "${RUN_ID}" ]];then
 fi
 
 RESOURCE_GROUP_NAME="${RESOURCE_GROUP_NAME:-rg-d-wus2-ghrunner-01}"
-: "${STORAGE_ACCOUNT_NAME:=myuniquestorageaccount}"
-: "${STORAGE_RESOURCE_GROUP_NAME:=rg-d-wus2-storage-01}"
-: "${STORAGE_ACCOUNT_ID:=/subscriptions/000xx000-00x0-0000-x0x0-xx00000000x0/resourceGroups/rg-d-wus2-storage-01/providers/Microsoft.Storage/storageAccounts/myuniquestorageaccount}"
+: "${STORAGE_BLOB_URI:=https://myuniquestorageaccount.blob.core.windows.net/}"
 : "${LOCATION:=westus2}"
 : "${VM_IMAGE:=canonical:ubuntu-24_04-lts:server:latest}"
 : "${VM_SIZE:=Standard_D8as_v5}"
@@ -53,18 +51,13 @@ if [[ $1 = '--destroy' ]]; then
     exit 0
 fi
 
-# Get Storage Id
-if [[ -z ${STORAGE_ACCOUNT_ID} ]];then
-    STORAGE_ACCOUNT_ID="$(az storage account show --resource-group "${STORAGE_RESOURCE_GROUP_NAME}" --name "${STORAGE_ACCOUNT_NAME}" --query 'id' --output tsv 2>/dev/null)"
-fi
-
 # Create the resource group
 az group create --name "${RESOURCE_GROUP_NAME}" --location "${LOCATION}" --output none
 
 # Set up setup script
 template_setup
 
-if [[ ! -z ${STORAGE_ACCOUNT_ID} ]];then
+if [[ ! -z ${STORAGE_BLOB_URI} ]];then
     # Create the debian vm
     az vm create \
         --resource-group "${RESOURCE_GROUP_NAME}" \
@@ -75,7 +68,7 @@ if [[ ! -z ${STORAGE_ACCOUNT_ID} ]];then
         --ssh-key-values "${HOME}/.ssh/id_rsa.pub" \
         --custom-data setup.sh \
         --public-ip-sku Standard \
-        --boot-diagnostics-storage ${STORAGE_ACCOUNT_ID} \
+        --boot-diagnostics-storage ${STORAGE_BLOB_URI} \
         --output none \
         --verbose
 else
