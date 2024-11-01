@@ -81,6 +81,7 @@ jobs:
           name: ssh
           path: ~/.ssh/
           retention-days: 1
+          overwrite: true
 
       - name: login to azure
         uses: Azure/login@v2
