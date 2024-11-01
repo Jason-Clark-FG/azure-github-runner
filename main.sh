@@ -7,7 +7,7 @@ template_setup() {
     template_file="setup.sh"
     sed_script="s|{{token}}|${RUNNER_TOKEN}|g"
     sed_script="${sed_script};s|{{repo}}|${GITHUB_REPO}|g"
-    sed_script="${sed_script};s|{{label}}|${LABEL}|g"
+    # sed_script="${sed_script};s|{{label}}|${LABEL}|g"
     sed "${sed_script}" "${template_file}.template" > "${template_file}"
 }
 
@@ -26,16 +26,16 @@ if [[ -z "${RUN_ID}" ]];then
     exit 1
 fi
 
-RESOURCE_GROUP_NAME="${RESOURCE_GROUP_NAME:-ghrunner}${RUN_ID}"
-: "${LOCATION:=northeurope}"
-: "${VM_IMAGE:=Canonical:0001-com-ubuntu-server-jammy:22_04-lts-gen2:latest}"
-: "${VM_SIZE:=Standard_B1s}"
-VM_NAME="${RESOURCE_GROUP_NAME}vm"
-VM_USERNAME='vm'
+RESOURCE_GROUP_NAME="${RESOURCE_GROUP_NAME:-rg-d-wus2-ghrunner-01}"
+: "${LOCATION:=westus2}"
+: "${VM_IMAGE:=canonical:ubuntu-24_04-lts:server:latest}"
+: "${VM_SIZE:=Standard_D8as_v5}"
+VM_NAME="${VM_NAME:-az-ghrunner-01d}"
+VM_USERNAME="${VM_USERNAME:-fgadmin}"
 
 
-test -z "${UNIQ_LABEL}" && UNIQ_LABEL=$(shuf -er -n8  {a..z} | paste -sd "")
-LABEL="azure,${UNIQ_LABEL}"
+# test -z "${UNIQ_LABEL}" && UNIQ_LABEL=$(shuf -er -n8  {a..z} | paste -sd "")
+# LABEL="azure,${UNIQ_LABEL}"
 RUNNER_TOKEN=$(gh api -XPOST --jq '.token' "repos/${GITHUB_REPO}/actions/runners/registration-token")
 
 if [[ $1 = '--destroy' ]]; then

@@ -4,14 +4,14 @@ Start your Azure Virtual Machines self-hosted runner right before you need it. R
 
 ## Exemple
 
-A workflow do-the-job.yml looks like this:
+A workflow `do-the-job.yml` looks like this:
 
 ```yaml
 name: do-the-job
 on: push
 jobs:
   start-runner:
-    uses: logiroad/azure-github-runner/.github/workflows/create.yml@v1
+    uses: Jason-Clark-FG/azure-github-runner/.github/workflows/create.yml@v1
       with:
         VM_SIZE: Standard_B1s
         LOCATION: northeurope
@@ -29,7 +29,7 @@ jobs:
             run: echo 'Hello World from Azure!'
   stop-runner:
     needs: do-the-job # required to wait when the main job is done
-    uses: logiroad/azure-github-runner/.github/workflows/delete.yml@v1
+    uses: Jason-Clark-FG/azure-github-runner/.github/workflows/delete.yml@v1
     if: ${{ always() }} # required to stop the runner even if the error happened in the previous jobs
     secrets:
       ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
@@ -39,4 +39,4 @@ jobs:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
 ```
 
-You also have an exemple at [test_create.yml](.github/workflows/test_create.yml)
+You also have an example at [test_create.yml](.github/workflows/test_create.yml)
