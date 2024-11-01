@@ -97,7 +97,7 @@ jobs:
           VM_SIZE: ${{ inputs.VM_SIZE }}
           LOCATION: ${{ inputs.LOCATION }}
           STORAGE_ACCOUNT_NAME: ${{ inputs.STORAGE_ACCOUNT_NAME }}
-          STORAGE_RESOURCE_GROUPNAME: ${{ inputs.STORAGE_RESOURCE_GROUP_NAME }}
+          STORAGE_RESOURCE_GROUP_NAME: ${{ inputs.STORAGE_RESOURCE_GROUP_NAME }}
           UNIQ_LABEL: ${{ steps.uniqlabel.outputs.label }}
         run: ./main.sh | jq -r 'keys[] as $k | "\($k)=\(.[$k])"' >> "$GITHUB_OUTPUT"
 
