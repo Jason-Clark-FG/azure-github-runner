@@ -34,7 +34,6 @@ RESOURCE_GROUP_NAME="${RESOURCE_GROUP_NAME:-rg-d-wus2-ghrunner-01}"
 VM_NAME="${VM_NAME:-az-ghrunner-01d}"
 VM_USERNAME="${VM_USERNAME:-fgadmin}"
 
-
 test -z "${UNIQ_LABEL}" && UNIQ_LABEL=$(shuf -er -n8  {a..z} | paste -sd "")
 LABEL="azure,${UNIQ_LABEL}"
 RUNNER_TOKEN=$(gh api -XPOST --jq '.token' "repos/${GITHUB_REPO}/actions/runners/registration-token")
