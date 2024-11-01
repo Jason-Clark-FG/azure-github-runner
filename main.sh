@@ -66,7 +66,8 @@ az vm create \
     --ssh-key-values "${HOME}/.ssh/id_rsa.pub" \
     --custom-data setup.sh \
     --public-ip-sku Standard \
-    --output none
+    --output none \
+    --verbose
 
 VM_IP=$(az vm show --show-details --resource-group "${RESOURCE_GROUP_NAME}" --name "${VM_NAME}" --query publicIps --output tsv)
 
@@ -80,3 +81,4 @@ jq -n \
     --arg vm_username "$VM_USERNAME" \
     --arg uniq_label "$UNIQ_LABEL" \
     '$ARGS.named'
+

@@ -12,7 +12,7 @@ on:
       ARM_SUBSCRIPTION_ID:
         required: true
       GH_TOKEN:
-        description: token with admin repo privilege
+        description: Token with admin repo privilege
         required: false
       GH_APP_ID:
         description: App id with admin privilege
@@ -73,14 +73,14 @@ jobs:
           GITHUB_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           RUN_ID: ${{ github.run_id }}
-        run: bash ./main.sh --destroy
+        run: ./main.sh --destroy
 
       - uses: actions/create-github-app-token@v1
         id: app-token
-        if: ${{ env.GH_TOKEN == '' }}
+        if: ${{ env.GH_TOKEN == '' || failure() }}
         with:
-          app_id: ${{ secrets.GH_APP_ID }}
-          private_key: ${{ secrets.GH_PRIVATE_KEY }}
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_PRIVATE_KEY }}
 
       - name: run script with appid & pkey
         if: ${{ steps.app-token.outcome == 'success' }}
@@ -88,5 +88,5 @@ jobs:
           GITHUB_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           RUN_ID: ${{ github.run_id }}
-        run: bash ./main.sh --destroy
+        run: ./main.sh --destroy
 
