@@ -43,7 +43,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Jason-Clark-FG/azure-github-runner
-          ref: v1.1.1
+          ref: main
       - name: Download ssh key
         uses: actions/download-artifact@v3
         with:

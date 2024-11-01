@@ -53,7 +53,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Jason-Clark-FG/azure-github-runner
-          ref: v1.1.1
+          ref: main
       - name: Generate ssh key
         run: ssh-keygen -b 2048 -f ~/.ssh/id_rsa -N ""
       - name: Config ssh
