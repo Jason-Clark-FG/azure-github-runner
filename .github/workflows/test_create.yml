@@ -5,7 +5,7 @@ on:
 
 jobs:
   create:
-    uses: Jason-Clark-FG/azure-github-runner/.github/workflows/create.yml@v1
+    uses: Jason-Clark-FG/azure-github-runner/.github/workflows/create.yml@main
     with:
       VM_SIZE: Standard_B2s
       LOCATION: francecentral
@@ -23,7 +23,7 @@ jobs:
     
   delete:
     needs: test
-    uses: Jason-Clark-FG/azure-github-runner/.github/workflows/delete.yml@v1
+    uses: Jason-Clark-FG/azure-github-runner/.github/workflows/delete.yml@main
     if: ${{ always() }}
     secrets:
       ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
