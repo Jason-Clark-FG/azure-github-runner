@@ -7,7 +7,7 @@ template_setup() {
     template_file="setup.sh"
     sed_script="s|{{token}}|${RUNNER_TOKEN}|g"
     sed_script="${sed_script};s|{{repo}}|${GITHUB_REPO}|g"
-    # sed_script="${sed_script};s|{{label}}|${LABEL}|g"
+    sed_script="${sed_script};s|{{label}}|${LABEL}|g"
     sed "${sed_script}" "${template_file}.template" > "${template_file}"
 }
 
@@ -35,8 +35,8 @@ VM_NAME="${VM_NAME:-az-ghrunner-01d}"
 VM_USERNAME="${VM_USERNAME:-fgadmin}"
 
 
-# test -z "${UNIQ_LABEL}" && UNIQ_LABEL=$(shuf -er -n8  {a..z} | paste -sd "")
-# LABEL="azure,${UNIQ_LABEL}"
+test -z "${UNIQ_LABEL}" && UNIQ_LABEL=$(shuf -er -n8  {a..z} | paste -sd "")
+LABEL="azure,${UNIQ_LABEL}"
 RUNNER_TOKEN=$(gh api -XPOST --jq '.token' "repos/${GITHUB_REPO}/actions/runners/registration-token")
 
 if [[ $1 = '--destroy' ]]; then
