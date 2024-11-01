@@ -10,6 +10,7 @@ jobs:
       VM_SIZE: Standard_B2s
       LOCATION: westus2
       STORAGE_ACCOUNT_NAME: sfgdwus2jcinstallmedia
+      STORAGE_RESOURCE_GROUP_NAME: rg-d-wus2-jclark
     secrets:
       ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}

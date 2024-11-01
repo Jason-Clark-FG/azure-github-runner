@@ -28,6 +28,7 @@ fi
 
 RESOURCE_GROUP_NAME="${RESOURCE_GROUP_NAME:-rg-d-wus2-ghrunner-01}"
 : "${STORAGE_ACCOUNT_NAME:=myuniquestorageaccount}"
+: "${STORAGE_RESOURCE_GROUP_NAME:=rg-d-wus2-storage-01}"
 : "${LOCATION:=westus2}"
 : "${VM_IMAGE:=canonical:ubuntu-24_04-lts:server:latest}"
 : "${VM_SIZE:=Standard_D8as_v5}"
@@ -52,7 +53,7 @@ if [[ $1 = '--destroy' ]]; then
 fi
 
 # Get Storage Id
-STORAGE_ID=$(az storage account show --resource-group  "${RESOURCE_GROUP_NAME}" --name "${STORAGE_ACCOUNT_NAME}" --query 'id' --output tsv)
+STORAGE_ID=$(az storage account show --resource-group  "${STORAGE_RESOURCE_GROUP_NAME}" --name "${STORAGE_ACCOUNT_NAME}" --query 'id' --output tsv)
 
 # Create the resource group
 az group create --name "${RESOURCE_GROUP_NAME}" --location "${LOCATION}" --output none
