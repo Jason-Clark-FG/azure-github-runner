@@ -71,11 +71,14 @@ jobs:
       - name: Config ssh
         run: touch ~/.ssh/known_hosts
 
-      - name: gen uniq label
+      - name: Show contents of ~/.ssh
+        run: ls -lA ~/.ssh/
+
+      - name: Generate a unique label
         id: uniqlabel
         run: 'echo label=$(shuf -er -n8  {a..z} | paste -sd "") >> "$GITHUB_OUTPUT"'
 
-      - name: upload ssh key
+      - name: Upload ssh key
         uses: actions/upload-artifact@v4
         with:
           name: ssh

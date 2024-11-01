@@ -53,7 +53,7 @@ if [[ $1 = '--destroy' ]]; then
 fi
 
 # Get Storage Id
-STORAGE_ID=$(az storage account show --resource-group  "${STORAGE_RESOURCE_GROUP_NAME}" --name "${STORAGE_ACCOUNT_NAME}" --query 'id' --output tsv)
+STORAGE_ID="$(az storage account show --resource-group "${STORAGE_RESOURCE_GROUP_NAME}" --name "${STORAGE_ACCOUNT_NAME}" --query 'id' --output tsv 2>/dev/null)"
 
 # Create the resource group
 az group create --name "${RESOURCE_GROUP_NAME}" --location "${LOCATION}" --output none
@@ -61,19 +61,34 @@ az group create --name "${RESOURCE_GROUP_NAME}" --location "${LOCATION}" --outpu
 # Set up setup script
 template_setup
 
-# Create the debian vm
-az vm create \
-    --resource-group "${RESOURCE_GROUP_NAME}" \
-    --name "${VM_NAME}" \
-    --image "${VM_IMAGE}" \
-    --admin-username "${VM_USERNAME}" \
-    --size "${VM_SIZE}" \
-    --ssh-key-values "${HOME}/.ssh/id_rsa.pub" \
-    --custom-data setup.sh \
-    --public-ip-sku Standard \
-    --boot-diagnostics-storage ${STORAGE_ID} \
-    --output none \
-    --verbose
+if [[ ! -z ${STORAGE_ID} ]];then
+    # Create the debian vm
+    az vm create \
+        --resource-group "${RESOURCE_GROUP_NAME}" \
+        --name "${VM_NAME}" \
+        --image "${VM_IMAGE}" \
+        --admin-username "${VM_USERNAME}" \
+        --size "${VM_SIZE}" \
+        --ssh-key-values "${HOME}/.ssh/id_rsa.pub" \
+        --custom-data setup.sh \
+        --public-ip-sku Standard \
+        --boot-diagnostics-storage ${STORAGE_ID} \
+        --output none \
+        --verbose
+else
+    # Create the debian vm
+    az vm create \
+        --resource-group "${RESOURCE_GROUP_NAME}" \
+        --name "${VM_NAME}" \
+        --image "${VM_IMAGE}" \
+        --admin-username "${VM_USERNAME}" \
+        --size "${VM_SIZE}" \
+        --ssh-key-values "${HOME}/.ssh/id_rsa.pub" \
+        --custom-data setup.sh \
+        --public-ip-sku Standard \
+        --output none \
+        --verbose
+fi
 
 VM_IP=$(az vm show --show-details --resource-group "${RESOURCE_GROUP_NAME}" --name "${VM_NAME}" --query publicIps --output tsv)
 
