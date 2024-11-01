@@ -92,7 +92,7 @@ sudo chown -R ${svc_user}:${svc_user_group} ${svc_user_home}/${GH_RUNNER_DIR}
 rm -f ${TMPDIR}/${runner_file}
 cd "${HOME}/${GH_RUNNER_DIR}"
 export RUNNER_ALLOW_RUNASROOT=1
-./config.sh --unattended --url https://github.com/{{repo}} --token {{token}} --labels {{label}}
+./config.sh --unattended --url https://github.com/{{repo}} --token {{token}}
 sudo ./svc.sh install
 sudo ./svc.sh start
 
