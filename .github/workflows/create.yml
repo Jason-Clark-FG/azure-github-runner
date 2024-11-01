@@ -11,6 +11,8 @@ on:
         type: string
       STORAGE_RESOURCE_GROUP_NAME:
         type: string
+      STORAGE_ACCOUNT_ID:
+        type: string
     secrets:
       ARM_CLIENT_ID:
         required: true
@@ -101,6 +103,7 @@ jobs:
           LOCATION: ${{ inputs.LOCATION }}
           STORAGE_ACCOUNT_NAME: ${{ inputs.STORAGE_ACCOUNT_NAME }}
           STORAGE_RESOURCE_GROUP_NAME: ${{ inputs.STORAGE_RESOURCE_GROUP_NAME }}
+          STORAGE_ACCOUNT_ID: ${{ inputs.STORAGE_ACCOUNT_ID }}
           UNIQ_LABEL: ${{ steps.uniqlabel.outputs.label }}
         run: ./main.sh | jq -r 'keys[] as $k | "\($k)=\(.[$k])"' >> "$GITHUB_OUTPUT"
 
