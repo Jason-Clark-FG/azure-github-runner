@@ -21,6 +21,10 @@ on:
         description: App private key with admin privilege
         required: false
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   delete:
     runs-on: ubuntu-latest
@@ -32,6 +36,7 @@ jobs:
           GH_PRIVATE_KEY: ${{ secrets.GH_PRIVATE_KEY }}
         if: ${{ env.GH_TOKEN == '' && (env.GH_APP_ID == '' || env.GH_PRIVATE_KEY == '') }}
         run: echo Error [GH_TOKEN] or [GH_APP_ID, GH_PRIVATE_KEY] are not defined  >> /dev/stderr; false
+
       - name: Test secrets 2
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
@@ -39,22 +44,28 @@ jobs:
           GH_PRIVATE_KEY: ${{ secrets.GH_PRIVATE_KEY }}
         if: ${{ env.GH_TOKEN != '' && ( env.GH_APP_ID != '' || env.GH_PRIVATE_KEY != '' ) }}
         run: echo Error [GH_TOKEN] and [GH_APP_ID, GH_PRIVATE_KEY] are defined  >> /dev/stderr; false
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           repository: Jason-Clark-FG/azure-github-runner
           ref: main
+
       - name: Download ssh key
         uses: actions/download-artifact@v3
         with:
           name: ssh
           path: ~/.ssh
+
       - name: Set ssh key permission
         run: chmod 400 ~/.ssh/id_rsa
+
       - name: login to azure
         uses: Azure/login@v2
         with:
-          creds: '{"clientId":"${{ secrets.ARM_CLIENT_ID }}","clientSecret":"${{ secrets.ARM_CLIENT_SECRET }}","subscriptionId":"${{ secrets.ARM_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.ARM_TENANT_ID }}"}'
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          # creds: '{"clientId":"${{ secrets.ARM_CLIENT_ID }}","clientSecret":"${{ secrets.ARM_CLIENT_SECRET }}","subscriptionId":"${{ secrets.ARM_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.ARM_TENANT_ID }}"}'
+
       - name: run script with gh token
         if: ${{ env.GH_TOKEN != '' }}
         env:
@@ -62,12 +73,14 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           RUN_ID: ${{ github.run_id }}
         run: bash ./main.sh --destroy
+
       - uses: actions/create-github-app-token@v1
         id: app-token
         if: ${{ env.GH_TOKEN == '' }}
         with:
           app_id: ${{ secrets.GH_APP_ID }}
           private_key: ${{ secrets.GH_PRIVATE_KEY }}
+
       - name: run script with appid & pkey
         if: ${{ steps.app-token.outcome == 'success' }}
         env:
@@ -75,3 +88,4 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           RUN_ID: ${{ github.run_id }}
         run: bash ./main.sh --destroy
+
