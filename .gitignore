@@ -1,2 +1,3 @@
 **/install.sh
 **/secrets*
+**/*.b64
