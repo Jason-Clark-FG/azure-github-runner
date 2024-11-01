@@ -7,6 +7,8 @@ on:
         type: string
       LOCATION:
         type: string
+      STORAGE_ACCOUNT_NAME:
+        type: string
     secrets:
       ARM_CLIENT_ID:
         required: true
@@ -81,11 +83,9 @@ jobs:
       - name: login to azure
         uses: Azure/login@v2
         with:
-          # creds: ${{ secrets.AZURE_CREDENTIALS }}
           creds: '{"clientId":"${{ secrets.ARM_CLIENT_ID }}","clientSecret":"${{ secrets.ARM_CLIENT_SECRET }}","subscriptionId":"${{ secrets.ARM_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.ARM_TENANT_ID }}"}'
-          # creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
 
-      - name: run script 1
+      - name: Create VM using GH_TOKEN
         if: ${{ env.GH_TOKEN != '' }}
         env:
           GITHUB_REPO: ${{ github.repository }}
@@ -98,7 +98,7 @@ jobs:
 
       - uses: actions/create-github-app-token@v1
         id: app-token
-        if: ${{ env.GH_TOKEN == '' || failure() }}
+        if: ${{ failure() && env.GH_TOKEN == '' }}
         with:
           app-id: ${{ secrets.GH_APP_ID }}
           private-key: ${{ secrets.GH_PRIVATE_KEY }}

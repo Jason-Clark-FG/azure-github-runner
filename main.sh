@@ -27,6 +27,7 @@ if [[ -z "${RUN_ID}" ]];then
 fi
 
 RESOURCE_GROUP_NAME="${RESOURCE_GROUP_NAME:-rg-d-wus2-ghrunner-01}"
+: "${STORAGE_ACCOUNT_NAME:=myuniquestorageaccount}"
 : "${LOCATION:=westus2}"
 : "${VM_IMAGE:=canonical:ubuntu-24_04-lts:server:latest}"
 : "${VM_SIZE:=Standard_D8as_v5}"
@@ -50,6 +51,9 @@ if [[ $1 = '--destroy' ]]; then
     exit 0
 fi
 
+# Get Storage Id
+STORAGE_ID=$(az storage account show --resource-group  "${RESOURCE_GROUP_NAME}" --name "${STORAGE_ACCOUNT_NAME}" --query 'id' --output tsv)
+
 # Create the resource group
 az group create --name "${RESOURCE_GROUP_NAME}" --location "${LOCATION}" --output none
 
@@ -66,6 +70,7 @@ az vm create \
     --ssh-key-values "${HOME}/.ssh/id_rsa.pub" \
     --custom-data setup.sh \
     --public-ip-sku Standard \
+    --boot-diagnostics-storage ${STORAGE_ID} \
     --output none \
     --verbose
 
