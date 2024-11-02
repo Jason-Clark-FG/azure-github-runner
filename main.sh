@@ -53,42 +53,49 @@ if [[ $1 = '--destroy' ]]; then
 fi
 
 # Create the resource group
-az group create --name "${RESOURCE_GROUP_NAME}" --location "${LOCATION}" --output none
+_rg_exists=$(az group show --name "${RESOURCE_GROUP_NAME}" --output none &>/dev/null;echo $?)
+if [[ $_rg_exists -ne 0 ]];then
+    az group create --name "${RESOURCE_GROUP_NAME}" --location "${LOCATION}" --output none
+fi
 
 # Set up setup script
 template_setup
 
-if [[ ! -z ${STORAGE_BLOB_URI} ]];then
-    # Create the debian vm
-    az vm create \
-        --resource-group "${RESOURCE_GROUP_NAME}" \
-        --name "${VM_NAME}" \
-        --image "${VM_IMAGE}" \
-        --admin-username "${VM_USERNAME}" \
-        --size "${VM_SIZE}" \
-        --ssh-key-values "${HOME}/.ssh/id_rsa.pub" \
-        --custom-data setup.sh \
-        --public-ip-sku Standard \
-        --boot-diagnostics-storage ${STORAGE_BLOB_URI} \
-        --os-disk-delete-option Delete \
-        --os-disk-size-gb ${VM_DISK_SIZE} \
-        --output none \
-        --verbose
-else
-    # Create the debian vm
-    az vm create \
-        --resource-group "${RESOURCE_GROUP_NAME}" \
-        --name "${VM_NAME}" \
-        --image "${VM_IMAGE}" \
-        --admin-username "${VM_USERNAME}" \
-        --size "${VM_SIZE}" \
-        --ssh-key-values "${HOME}/.ssh/id_rsa.pub" \
-        --custom-data setup.sh \
-        --public-ip-sku Standard \
-        --os-disk-delete-option Delete \
-        --os-disk-size-gb ${VM_DISK_SIZE} \
-        --output none \
-        --verbose
+_vm_exists=$(az vm show --resource-group "${RESOURCE_GROUP_NAME}" --name "${VM_NAME}" --output none &>/dev/null;echo $?)
+
+if [[ $_vm_exists -ne 0 ]];then
+    if [[ ! -z ${STORAGE_BLOB_URI} ]];then
+        # Create the debian vm
+        az vm create \
+            --resource-group "${RESOURCE_GROUP_NAME}" \
+            --name "${VM_NAME}" \
+            --image "${VM_IMAGE}" \
+            --admin-username "${VM_USERNAME}" \
+            --size "${VM_SIZE}" \
+            --ssh-key-values "${HOME}/.ssh/id_rsa.pub" \
+            --custom-data setup.sh \
+            --public-ip-sku Standard \
+            --boot-diagnostics-storage ${STORAGE_BLOB_URI} \
+            --os-disk-delete-option Delete \
+            --os-disk-size-gb ${VM_DISK_SIZE} \
+            --output none \
+            --verbose
+    else
+        # Create the debian vm
+        az vm create \
+            --resource-group "${RESOURCE_GROUP_NAME}" \
+            --name "${VM_NAME}" \
+            --image "${VM_IMAGE}" \
+            --admin-username "${VM_USERNAME}" \
+            --size "${VM_SIZE}" \
+            --ssh-key-values "${HOME}/.ssh/id_rsa.pub" \
+            --custom-data setup.sh \
+            --public-ip-sku Standard \
+            --os-disk-delete-option Delete \
+            --os-disk-size-gb ${VM_DISK_SIZE} \
+            --output none \
+            --verbose
+    fi
 fi
 
 VM_IP=$(az vm show --show-details --resource-group "${RESOURCE_GROUP_NAME}" --name "${VM_NAME}" --query publicIps --output tsv)

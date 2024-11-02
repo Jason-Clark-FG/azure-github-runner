@@ -130,8 +130,14 @@ jobs:
           GITHUB_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           RUN_ID: ${{ github.run_id }}
-          VM_SIZE: ${{ inputs.VM_SIZE }}
+          RESOURCE_GROUP_NAME: ${{ inputs.RESOURCE_GROUP_NAME }}
           LOCATION: ${{ inputs.LOCATION }}
+          VM_IMAGE: ${{ inputs.VM_IMAGE }}
+          VM_SIZE: ${{ inputs.VM_SIZE }}
+          VM_DISK_SIZE: ${{ inputs.VM_DISK_SIZE }}
+          VM_NAME: ${{ inputs.VM_NAME }}
+          VM_USERNAME: ${{ inputs.VM_USERNAME }}
+          STORAGE_BLOB_URI: ${{ inputs.STORAGE_BLOB_URI }}
           UNIQ_LABEL: ${{ steps.uniqlabel.outputs.label }}
         run: ./main.sh | jq -r 'keys[] as $k | "\($k)=\(.[$k])"' >> "$GITHUB_OUTPUT"
 

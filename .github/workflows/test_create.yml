@@ -32,6 +32,10 @@ jobs:
     needs: test
     uses: Jason-Clark-FG/azure-github-runner/.github/workflows/delete.yml@main
     if: ${{ always() }}
+    with:
+      RESOURCE_GROUP_NAME: "rg-t-ghrunner-01"
+      VM_NAME: "az-ghr-01d"
+      VM_USERNAME: "ghradmin"
     secrets:
       ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}

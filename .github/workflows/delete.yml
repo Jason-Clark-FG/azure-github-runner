@@ -2,6 +2,13 @@ name: delete
 
 on:
   workflow_call:
+    inputs:
+      RESOURCE_GROUP_NAME:
+        type: string
+      VM_NAME:
+        type: string
+      VM_USERNAME:
+        type: string
     secrets:
       ARM_CLIENT_ID:
         required: true
@@ -71,6 +78,9 @@ jobs:
           GITHUB_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           RUN_ID: ${{ github.run_id }}
+          RESOURCE_GROUP_NAME: ${{ inputs.RESOURCE_GROUP_NAME }}
+          VM_NAME: ${{ inputs.VM_NAME }}
+          VM_USERNAME: ${{ inputs.VM_USERNAME }}
         run: ./main.sh --destroy
 
       - uses: actions/create-github-app-token@v1
@@ -86,5 +96,8 @@ jobs:
           GITHUB_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           RUN_ID: ${{ github.run_id }}
+          RESOURCE_GROUP_NAME: ${{ inputs.RESOURCE_GROUP_NAME }}
+          VM_NAME: ${{ inputs.VM_NAME }}
+          VM_USERNAME: ${{ inputs.VM_USERNAME }}
         run: ./main.sh --destroy
 
