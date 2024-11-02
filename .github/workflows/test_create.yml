@@ -11,7 +11,7 @@ jobs:
       LOCATION: "westus2"
       VM_IMAGE: "canonical:ubuntu-24_04-lts:server:latest"
       VM_SIZE: "Standard_B2s"
-      VM_DISK_SIZE: 127
+      VM_DISK_SIZE: "127"
       VM_NAME: "az-ghr-01d"
       VM_USERNAME: "ghradmin"
       STORAGE_BLOB_URI: ""
