@@ -27,14 +27,14 @@ if [[ -z "${RUN_ID}" ]];then
     exit 1
 fi
 
-RESOURCE_GROUP_NAME="${RESOURCE_GROUP_NAME:-rg-d-wus2-ghrunner-01}"
-: "${STORAGE_BLOB_URI:=https://myuniquestorageaccount.blob.core.windows.net/}"
+: "${RESOURCE_GROUP_NAME:=rgghrunner${RUN_ID}}"
 : "${LOCATION:=westus2}"
 : "${VM_IMAGE:=canonical:ubuntu-24_04-lts:server:latest}"
 : "${VM_SIZE:=Standard_D4ms}"
 : "${VM_DISK_SIZE:=127}"
-VM_NAME="${VM_NAME:-az-ghrunner-01d}"
-VM_USERNAME="${VM_USERNAME:-fgadmin}"
+: "${VM_NAME:=ghrunner${RUN_ID}}"
+: "${VM_USERNAME:=ghradmin}"
+: "${STORAGE_BLOB_URI:=}"
 
 test -z "${UNIQ_LABEL}" && UNIQ_LABEL=$(shuf -er -n8  {a..z} | paste -sd "")
 LABEL="azure,${UNIQ_LABEL}"
