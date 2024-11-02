@@ -8,6 +8,7 @@ jobs:
     uses: Jason-Clark-FG/azure-github-runner/.github/workflows/create.yml@main
     with:
       VM_SIZE: "Standard_B2s"
+      VM_DISK_SIZE: 127
       LOCATION: "westus2"
       STORAGE_BLOB_URI: "https://sfgdwus2syspro8.blob.core.windows.net/"
     secrets:

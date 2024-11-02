@@ -31,7 +31,8 @@ RESOURCE_GROUP_NAME="${RESOURCE_GROUP_NAME:-rg-d-wus2-ghrunner-01}"
 : "${STORAGE_BLOB_URI:=https://myuniquestorageaccount.blob.core.windows.net/}"
 : "${LOCATION:=westus2}"
 : "${VM_IMAGE:=canonical:ubuntu-24_04-lts:server:latest}"
-: "${VM_SIZE:=Standard_D8as_v5}"
+: "${VM_SIZE:=Standard_D4ms}"
+: "${VM_DISK_SIZE:=127}"
 VM_NAME="${VM_NAME:-az-ghrunner-01d}"
 VM_USERNAME="${VM_USERNAME:-fgadmin}"
 
@@ -69,6 +70,8 @@ if [[ ! -z ${STORAGE_BLOB_URI} ]];then
         --custom-data setup.sh \
         --public-ip-sku Standard \
         --boot-diagnostics-storage ${STORAGE_BLOB_URI} \
+        --os-disk-delete-option Delete \
+        --os-disk-size-gb ${VM_DISK_SIZE} \
         --output none \
         --verbose
 else
@@ -82,6 +85,8 @@ else
         --ssh-key-values "${HOME}/.ssh/id_rsa.pub" \
         --custom-data setup.sh \
         --public-ip-sku Standard \
+        --os-disk-delete-option Delete \
+        --os-disk-size-gb ${VM_DISK_SIZE} \
         --output none \
         --verbose
 fi
