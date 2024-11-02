@@ -101,6 +101,7 @@ jq -n \
     --arg vm_size "$VM_SIZE" \
     --arg vm_name "$VM_NAME" \
     --arg vm_username "$VM_USERNAME" \
+    --arg vm_disk_size "$VM_DISK_SIZE" \
     --arg uniq_label "$UNIQ_LABEL" \
     '$ARGS.named'
 
