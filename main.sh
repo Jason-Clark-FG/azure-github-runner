@@ -43,9 +43,9 @@ RUNNER_TOKEN=$(gh api -XPOST --jq '.token' "repos/${GITHUB_REPO}/actions/runners
 if [[ $1 = '--destroy' ]]; then
     # Set up destroy script
     template_setup
-    VM_IP=$(az vm show --show-details --resource-group "${RESOURCE_GROUP_NAME}" --name "${VM_NAME}" --query publicIps --output tsv)
+    VM_IP=$(az vm show --show-details --resource-group "${RESOURCE_GROUP_NAME}" --name "${VM_NAME}" --query publicIps --output tsv 2>/dev/null)
     ssh-keyscan "${VM_IP}" >> "${HOME}/.ssh/known_hosts" 2> /dev/null
-    ssh "${VM_USERNAME}@${VM_IP}" 'bash -s -- --destroy' < setup.sh
+    ssh "${VM_USERNAME}@${VM_IP}" 'bash -s -- --destroy' < setup.sh 2>/dev/null
     ssh-keygen -R "${VM_IP}"
     # Delete the resource group
     az group delete --name "${RESOURCE_GROUP_NAME}" --no-wait --yes --output none
