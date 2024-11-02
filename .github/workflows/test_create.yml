@@ -22,7 +22,7 @@ jobs:
     needs: create
     steps:
       - run: echo running on azure:${{ needs.create.outputs.uniq_label }}
-    
+
   delete:
     needs: test
     uses: Jason-Clark-FG/azure-github-runner/.github/workflows/delete.yml@main

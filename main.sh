@@ -8,6 +8,7 @@ template_setup() {
     sed_script="s|{{token}}|${RUNNER_TOKEN}|g"
     sed_script="${sed_script};s|{{repo}}|${GITHUB_REPO}|g"
     sed_script="${sed_script};s|{{label}}|${LABEL}|g"
+    sed_script="${sed_script};s|{{vm_username}}|${VM_USERNAME}|g"
     sed "${sed_script}" "${template_file}.template" > "${template_file}"
 }
 

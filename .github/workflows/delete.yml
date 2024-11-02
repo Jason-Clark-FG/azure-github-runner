@@ -65,7 +65,7 @@ jobs:
         with:
           creds: '{"clientId":"${{ secrets.ARM_CLIENT_ID }}","clientSecret":"${{ secrets.ARM_CLIENT_SECRET }}","subscriptionId":"${{ secrets.ARM_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.ARM_TENANT_ID }}"}'
 
-      - name: run script with gh token
+      - name: Run script with gh token
         if: ${{ env.GH_TOKEN != '' }}
         env:
           GITHUB_REPO: ${{ github.repository }}
@@ -80,7 +80,7 @@ jobs:
           app-id: ${{ secrets.GH_APP_ID }}
           private-key: ${{ secrets.GH_PRIVATE_KEY }}
 
-      - name: run script with appid & pkey
+      - name: Run script with appid & pkey
         if: ${{ steps.app-token.outcome == 'success' }}
         env:
           GITHUB_REPO: ${{ github.repository }}
