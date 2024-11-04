@@ -4,26 +4,27 @@ on:
   workflow_dispatch:
 
 jobs:
-  create-vars:
-    runs-on: ubuntu-latest
-    outputs:
-      vm_image_ref: ${{ steps.step1.outputs.vm_image_ref }}
-    steps:
-      - name: Print inputs passed to the reusable workflow
-        id: step1
-        run: |
-          echo "vm_image_ref=$VM_IMAGE_REF" >> $GITHUB_OUTPUT
-        env:
-          VM_IMAGE_REF: ${{ secrets.VM_IMAGE_REF }}
+  # create-vars:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     vm_image_ref: ${{ steps.step1.outputs.vm_image_ref }}
+  #   steps:
+  #     - name: Print inputs passed to the reusable workflow
+  #       id: step1
+  #       run: |
+  #         echo "vm_image_ref=$VM_IMAGE_REF" >> $GITHUB_OUTPUT
+  #       env:
+  #         VM_IMAGE_REF: ${{ secrets.VM_IMAGE_REF }}
 
   create:
-    needs: create-vars
+    # needs: create-vars
     uses: Jason-Clark-FG/azure-github-runner/.github/workflows/create.yml@main
     with:
       RESOURCE_GROUP_NAME: "rg-t-ghrunner-01"
       LOCATION: "westus2"
       # VM_IMAGE: "canonical:ubuntu-24_04-lts:server:latest"
-      VM_IMAGE: ${{ needs.create-vars.outputs.vm_image_ref }}
+      # VM_IMAGE: ${{ needs.create-vars.outputs.vm_image_ref }}
+      VM_IMAGE: ${{ vars.VM_IMAGE_REF }}
       VM_SIZE: "Standard_B2s"
       VM_DISK_SIZE: "127"
       VM_NAME: "az-ghr-01d"

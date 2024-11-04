@@ -45,7 +45,7 @@ if [[ $1 = '--destroy' ]]; then
     template_setup
     VM_IP=$(az vm show --show-details --resource-group "${RESOURCE_GROUP_NAME}" --name "${VM_NAME}" --query publicIps --output tsv 2>/dev/null)
     ssh-keyscan "${VM_IP}" >> "${HOME}/.ssh/known_hosts" 2> /dev/null
-    ssh "${VM_USERNAME}@${VM_IP}" 'bash -s -- --destroy' < setup.sh 2>/dev/null
+    ssh "${VM_USERNAME}@${VM_IP}" 'bash -s -- --destroy' < setup.sh 2> /dev/null
     ssh-keygen -R "${VM_IP}"
     # Delete the resource group
     az group delete --name "${RESOURCE_GROUP_NAME}" --no-wait --yes --output none
@@ -53,7 +53,7 @@ if [[ $1 = '--destroy' ]]; then
 fi
 
 # Create the resource group
-_rg_exists=$(az group show --name "${RESOURCE_GROUP_NAME}" --output none &>/dev/null;echo $?)
+_rg_exists=$(az group show --name "${RESOURCE_GROUP_NAME}" --output none &> /dev/null;echo $?)
 if [[ $_rg_exists -ne 0 ]];then
     az group create --name "${RESOURCE_GROUP_NAME}" --location "${LOCATION}" --output none
 fi
@@ -61,7 +61,7 @@ fi
 # Set up setup script
 template_setup
 
-_vm_exists=$(az vm show --resource-group "${RESOURCE_GROUP_NAME}" --name "${VM_NAME}" --output none &>/dev/null;echo $?)
+_vm_exists=$(az vm show --resource-group "${RESOURCE_GROUP_NAME}" --name "${VM_NAME}" --output none &> /dev/null;echo $?)
 
 if [[ $_vm_exists -ne 0 ]];then
     if [[ ! -z ${STORAGE_BLOB_URI} ]];then
