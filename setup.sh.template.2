@@ -1,0 +1,105 @@
+#!/bin/bash
+set -Eeuxo pipefail
+
+## Variables
+SCRIPT_EXTRA_ACTION="${1:-}"
+GH_USER="${GH_USER:-$(id -un)}"
+GH_RUNNER_DIR="${GH_RUNNER_DIR:-actions-runner}"
+VM_USERNAME="{{vm_username}}"
+
+# Make sure script is run as non root
+if [[ $UID = 0 ]]; then
+    regular_user="$(id -un -- 1000)"
+    chown "${regular_user}" "$0"
+    su -c "bash '$0'" "${regular_user}"
+    exit 0
+fi
+
+if [[ ${SCRIPT_EXTRA_ACTION} == '--destroy' ]]; then
+    cd "${HOME}/${GH_RUNNER_DIR}"
+    sudo ./svc.sh uninstall
+    ./config.sh remove --token {{token}}
+    exit 0
+fi
+
+## Update Cache
+sudo apt-get -o DPkg::Lock::Timeout=300 update
+## Update System
+# Ref: https://askubuntu.com/questions/972516/debian-frontend-environment-variable#comment1914631_972528
+sudo DEBIAN_FRONTEND=noninteractive apt-get --assume-yes -o DPkg::Lock::Timeout=300 dist-upgrade
+## Install Additional Software
+sudo DEBIAN_FRONTEND=noninteractive apt-get --assume-yes -o DPkg::Lock::Timeout=300 install ca-certificates curl apt-transport-https lsb-release gnupg dotnet-sdk-8.0 jq python3-pip python3-dev libffi-dev python-is-python3 python3-wheel zip
+
+## Add Repos and Keys
+## Microsoft Key
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/keyrings/microsoft.gpg > /dev/null
+sudo chmod go+r /etc/apt/keyrings/microsoft.gpg
+## Microsoft Azure CLI Repo
+AZ_DIST=$(lsb_release -cs)
+echo -e "Types: deb\nURIs: https://packages.microsoft.com/repos/azure-cli/\nSuites: ${AZ_DIST}\nComponents: main\nArchitectures: $(dpkg --print-architecture)\nSigned-by: /etc/apt/keyrings/microsoft.gpg\n" | sudo tee /etc/apt/sources.list.d/azure-cli.sources
+## Docker Key
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+## Docker Repo
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+## Install Software from Additional Repos
+sudo DEBIAN_FRONTEND=noninteractive apt-get --assume-yes -o DPkg::Lock::Timeout=300 remove docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc 2>/dev/null
+sudo apt-get -o DPkg::Lock::Timeout=300 update
+sudo DEBIAN_FRONTEND=noninteractive apt-get --assume-yes -o DPkg::Lock::Timeout=300 install azure-cli docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+## Install Binary Tools
+sudo curl -fsSL https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/bin/yq
+sudo chmod +x /usr/bin/yq
+sudo curl -fsSL https://downloads.mend.io/cli/linux_amd64/mend -o /usr/local/bin/mend
+sudo chmod +x /usr/local/bin/mend
+
+## Check installation
+command -v az
+az version
+command -v docker
+docker --version
+docker compose version
+command -v yq
+yq --version
+command -v mend
+mend version --non-interactive
+
+## Update User Permissions
+sudo usermod -aG docker "${VM_USERNAME}"
+sudo usermod -aG docker "${GH_USER}"
+
+## Clean Apt
+sudo DEBIAN_FRONTEND=noninteractive apt-get --assume-yes -o DPkg::Lock::Timeout=300 clean 2>/dev/null
+sudo rm -rf /var/lib/apt/lists/* 2>/dev/null
+
+## GitHub Runner
+# Download the Runner from GitHub
+echo -e "Downloading latest runner ..."
+runner_plat="linux"
+runner_arch=x64
+[ ! -z "$(arch | grep arm64)" ] && runner_arch=arm64
+svc_user="$(id -un)"
+svc_user_home="$(awk -v usr=${svc_user} -F ':' '$1 == usr {print $6;exit;}' /etc/passwd)"
+svc_user_group="$(id -ng ${svc_user})"
+TMPDIR="/tmp"
+sudo mkdir ${HOME}/${GH_RUNNER_DIR}
+latest_version_label=$(curl -fsSL -X GET 'https://api.github.com/repos/actions/runner/releases/latest' | jq -r '.tag_name')
+latest_version=$(echo ${latest_version_label:1})
+runner_file="actions-runner-${runner_plat}-${runner_arch}-${latest_version}.tar.gz"
+runner_url="https://github.com/actions/runner/releases/download/${latest_version_label}/${runner_file}"
+echo -e "Downloading ${latest_version_label} for ${runner_plat} ..."
+echo -e "curl -fsSL ${runner_url} -o ${TMPDIR}/${runner_file}"
+curl -fsSL ${runner_url} -o ${TMPDIR}/${runner_file}
+ls -la ${TMPDIR}/${runner_file}
+sudo tar xzf "${TMPDIR}/${runner_file}" -C ${svc_user_home}/${GH_RUNNER_DIR}
+sudo chown -R ${svc_user}:${svc_user_group} ${svc_user_home}/${GH_RUNNER_DIR}
+rm -f ${TMPDIR}/${runner_file}
+cd "${HOME}/${GH_RUNNER_DIR}"
+export RUNNER_ALLOW_RUNASROOT=1
+./config.sh --unattended --url https://github.com/{{repo}} --token {{token}} --labels {{label}} --replace
+sudo ./svc.sh install
+sudo ./svc.sh start
+
