@@ -30,6 +30,7 @@ fi
 : "${RESOURCE_GROUP_NAME:=rgghrunner${RUN_ID}}"
 : "${LOCATION:=westus2}"
 : "${VM_IMAGE:=canonical:ubuntu-24_04-lts:server:latest}"
+: "${VM_SPOT:=False}"
 : "${VM_SIZE:=Standard_D4ms}"
 : "${VM_DISK_SIZE:=127}"
 : "${VM_NAME:=ghrunner${RUN_ID}}"
@@ -65,36 +66,93 @@ _vm_exists=$(az vm show --resource-group "${RESOURCE_GROUP_NAME}" --name "${VM_N
 
 if [[ $_vm_exists -ne 0 ]];then
     if [[ ! -z ${STORAGE_BLOB_URI} ]];then
-        # Create the debian vm
-        az vm create \
-            --resource-group "${RESOURCE_GROUP_NAME}" \
-            --name "${VM_NAME}" \
-            --image "${VM_IMAGE}" \
-            --admin-username "${VM_USERNAME}" \
-            --size "${VM_SIZE}" \
-            --ssh-key-values "${HOME}/.ssh/id_rsa.pub" \
-            --custom-data setup.sh \
-            --public-ip-sku Standard \
-            --boot-diagnostics-storage ${STORAGE_BLOB_URI} \
-            --os-disk-delete-option Delete \
-            --os-disk-size-gb ${VM_DISK_SIZE} \
-            --output none \
-            --verbose
+        case ${VM_SPOT} in
+            "True")
+                # Create the spot instance vm
+                az vm create \
+                    --resource-group "${RESOURCE_GROUP_NAME}" \
+                    --name "${VM_NAME}" \
+                    --image "${VM_IMAGE}" \
+                    --admin-username "${VM_USERNAME}" \
+                    --size "${VM_SIZE}" \
+                    --priority "Spot" \
+                    --max-price "-1" \
+                    --eviction-policy "Delete" \
+                    --ssh-key-values "${HOME}/.ssh/id_rsa.pub" \
+                    --custom-data setup.sh \
+                    --public-ip-sku Standard \
+                    --boot-diagnostics-storage ${STORAGE_BLOB_URI} \
+                    --os-disk-delete-option Delete \
+                    --os-disk-size-gb ${VM_DISK_SIZE} \
+                    --output none \
+                    --verbose
+            ;;
+            *)
+                # Create the regular vm
+                az vm create \
+                    --resource-group "${RESOURCE_GROUP_NAME}" \
+                    --name "${VM_NAME}" \
+                    --image "${VM_IMAGE}" \
+                    --admin-username "${VM_USERNAME}" \
+                    --size "${VM_SIZE}" \
+                    --ssh-key-values "${HOME}/.ssh/id_rsa.pub" \
+                    --custom-data setup.sh \
+                    --public-ip-sku Standard \
+                    --boot-diagnostics-storage ${STORAGE_BLOB_URI} \
+                    --os-disk-delete-option Delete \
+                    --os-disk-size-gb ${VM_DISK_SIZE} \
+                    --output none \
+                    --verbose
+            ;;
+        esac
     else
-        # Create the debian vm
-        az vm create \
-            --resource-group "${RESOURCE_GROUP_NAME}" \
-            --name "${VM_NAME}" \
-            --image "${VM_IMAGE}" \
-            --admin-username "${VM_USERNAME}" \
-            --size "${VM_SIZE}" \
-            --ssh-key-values "${HOME}/.ssh/id_rsa.pub" \
-            --custom-data setup.sh \
-            --public-ip-sku Standard \
-            --os-disk-delete-option Delete \
-            --os-disk-size-gb ${VM_DISK_SIZE} \
-            --output none \
-            --verbose
+        case ${VM_SPOT} in
+            "True")
+                # Create the spot instance vm
+                az vm create \
+                    --resource-group "${RESOURCE_GROUP_NAME}" \
+                    --name "${VM_NAME}" \
+                    --image "${VM_IMAGE}" \
+                    --admin-username "${VM_USERNAME}" \
+                    --size "${VM_SIZE}" \
+                    --priority "Spot" \
+                    --max-price "-1" \
+                    --eviction-policy "Delete" \
+                    --ssh-key-values "${HOME}/.ssh/id_rsa.pub" \
+                    --custom-data setup.sh \
+                    --public-ip-sku Standard \
+                    --os-disk-delete-option Delete \
+                    --os-disk-size-gb ${VM_DISK_SIZE} \
+                    --output none \
+                    --verbose
+                az vm boot-diagnostics enable \
+                    --resource-group "${RESOURCE_GROUP_NAME}" \
+                    --name "${VM_NAME}" \
+                    --output none \
+                    --verbose
+            ;;
+            *)
+                # Create the regular vm
+                az vm create \
+                    --resource-group "${RESOURCE_GROUP_NAME}" \
+                    --name "${VM_NAME}" \
+                    --image "${VM_IMAGE}" \
+                    --admin-username "${VM_USERNAME}" \
+                    --size "${VM_SIZE}" \
+                    --ssh-key-values "${HOME}/.ssh/id_rsa.pub" \
+                    --custom-data setup.sh \
+                    --public-ip-sku Standard \
+                    --os-disk-delete-option Delete \
+                    --os-disk-size-gb ${VM_DISK_SIZE} \
+                    --output none \
+                    --verbose
+                az vm boot-diagnostics enable \
+                    --resource-group "${RESOURCE_GROUP_NAME}" \
+                    --name "${VM_NAME}" \
+                    --output none \
+                    --verbose
+            ;;
+        esac
     fi
 fi
 

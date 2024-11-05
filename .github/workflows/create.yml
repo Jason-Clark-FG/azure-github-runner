@@ -9,6 +9,8 @@ on:
         type: string
       VM_IMAGE:
         type: string
+      VM_SPOT:
+        type: string
       VM_SIZE:
         type: string
       VM_DISK_SIZE:
@@ -79,9 +81,6 @@ jobs:
       - name: Config ssh
         run: touch ~/.ssh/known_hosts
 
-      - name: Show contents of ~/.ssh
-        run: ls -lA ~/.ssh/
-
       - name: Generate a unique label
         id: uniqlabel
         run: 'echo label=$(shuf -er -n8  {a..z} | paste -sd "") >> "$GITHUB_OUTPUT"'
@@ -109,6 +108,7 @@ jobs:
           RESOURCE_GROUP_NAME: ${{ inputs.RESOURCE_GROUP_NAME }}
           LOCATION: ${{ inputs.LOCATION }}
           VM_IMAGE: ${{ inputs.VM_IMAGE }}
+          VM_SPOT: ${{ inputs.VM_SPOT }}
           VM_SIZE: ${{ inputs.VM_SIZE }}
           VM_DISK_SIZE: ${{ inputs.VM_DISK_SIZE }}
           VM_NAME: ${{ inputs.VM_NAME }}
@@ -133,6 +133,7 @@ jobs:
           RESOURCE_GROUP_NAME: ${{ inputs.RESOURCE_GROUP_NAME }}
           LOCATION: ${{ inputs.LOCATION }}
           VM_IMAGE: ${{ inputs.VM_IMAGE }}
+          VM_SPOT: ${{ inputs.VM_SPOT }}
           VM_SIZE: ${{ inputs.VM_SIZE }}
           VM_DISK_SIZE: ${{ inputs.VM_DISK_SIZE }}
           VM_NAME: ${{ inputs.VM_NAME }}
