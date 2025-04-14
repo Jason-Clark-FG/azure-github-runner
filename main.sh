@@ -74,6 +74,7 @@ if [[ $_vm_exists -ne 0 ]];then
                     --name "${VM_NAME}" \
                     --image "${VM_IMAGE}" \
                     --admin-username "${VM_USERNAME}" \
+                    --security-type "Standard" \
                     --size "${VM_SIZE}" \
                     --priority "Spot" \
                     --max-price "-1" \
@@ -94,6 +95,7 @@ if [[ $_vm_exists -ne 0 ]];then
                     --name "${VM_NAME}" \
                     --image "${VM_IMAGE}" \
                     --admin-username "${VM_USERNAME}" \
+                    --security-type "Standard" \
                     --size "${VM_SIZE}" \
                     --ssh-key-values "${HOME}/.ssh/id_rsa.pub" \
                     --custom-data setup.sh \
@@ -114,6 +116,7 @@ if [[ $_vm_exists -ne 0 ]];then
                     --name "${VM_NAME}" \
                     --image "${VM_IMAGE}" \
                     --admin-username "${VM_USERNAME}" \
+                    --security-type "Standard" \
                     --size "${VM_SIZE}" \
                     --priority "Spot" \
                     --max-price "-1" \
@@ -137,6 +140,7 @@ if [[ $_vm_exists -ne 0 ]];then
                     --resource-group "${RESOURCE_GROUP_NAME}" \
                     --name "${VM_NAME}" \
                     --image "${VM_IMAGE}" \
+                    --security-type "Standard" \
                     --admin-username "${VM_USERNAME}" \
                     --size "${VM_SIZE}" \
                     --ssh-key-values "${HOME}/.ssh/id_rsa.pub" \
