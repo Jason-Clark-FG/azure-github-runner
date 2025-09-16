@@ -119,6 +119,7 @@ jobs:
           VM_USERNAME: ${{ inputs.VM_USERNAME }}
           STORAGE_BLOB_URI: ${{ inputs.STORAGE_BLOB_URI }}
           UNIQ_LABEL: ${{ steps.uniqlabel.outputs.label }}
+          SSH_KEY_BASENAME: ${{ inputs.SSH_KEY_BASENAME }}
         run: ./main.sh | jq -r 'keys[] as $k | "\($k)=\(.[$k])"' >> "$GITHUB_OUTPUT"
 
       - uses: actions/create-github-app-token@v1
@@ -144,5 +145,6 @@ jobs:
           VM_USERNAME: ${{ inputs.VM_USERNAME }}
           STORAGE_BLOB_URI: ${{ inputs.STORAGE_BLOB_URI }}
           UNIQ_LABEL: ${{ steps.uniqlabel.outputs.label }}
+          SSH_KEY_BASENAME: ${{ inputs.SSH_KEY_BASENAME }}
         run: ./main.sh | jq -r 'keys[] as $k | "\($k)=\(.[$k])"' >> "$GITHUB_OUTPUT"
 

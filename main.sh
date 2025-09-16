@@ -13,17 +13,17 @@ template_setup() {
 }
 
 if [[ -z "${GITHUB_REPO}" ]];then
-    >&2 echo "env var GITHUB_REPO not defined" 
+    >&2 echo "env var GITHUB_REPO not defined"
     exit 1
 fi
 
 if [[ -z "${GH_TOKEN}" ]];then
-    >&2 echo "env var GH_TOKEN not defined" 
+    >&2 echo "env var GH_TOKEN not defined"
     exit 1
 fi
 
 if [[ -z "${RUN_ID}" ]];then
-    >&2 echo "env var RUN_ID not defined" 
+    >&2 echo "env var RUN_ID not defined"
     exit 1
 fi
 
@@ -36,6 +36,7 @@ fi
 : "${VM_NAME:=ghrunner${RUN_ID}}"
 : "${VM_USERNAME:=ghradmin}"
 : "${STORAGE_BLOB_URI:=}"
+: "${SSH_KEY_BASENAME:=id_rsa}"
 
 test -z "${UNIQ_LABEL}" && UNIQ_LABEL=$(shuf -er -n8  {a..z} | paste -sd "")
 LABEL="azure,${UNIQ_LABEL}"
@@ -79,7 +80,7 @@ if [[ $_vm_exists -ne 0 ]];then
                     --priority "Spot" \
                     --max-price "-1" \
                     --eviction-policy "Delete" \
-                    --ssh-key-values "${HOME}/.ssh/id_rsa.pub" \
+                    --ssh-key-values "${HOME}/.ssh/${SSH_KEY_BASENAME}.pub" \
                     --custom-data setup.sh \
                     --public-ip-sku Standard \
                     --boot-diagnostics-storage ${STORAGE_BLOB_URI} \
@@ -97,7 +98,7 @@ if [[ $_vm_exists -ne 0 ]];then
                     --admin-username "${VM_USERNAME}" \
                     --security-type "Standard" \
                     --size "${VM_SIZE}" \
-                    --ssh-key-values "${HOME}/.ssh/id_rsa.pub" \
+                    --ssh-key-values "${HOME}/.ssh/${SSH_KEY_BASENAME}.pub" \
                     --custom-data setup.sh \
                     --public-ip-sku Standard \
                     --boot-diagnostics-storage ${STORAGE_BLOB_URI} \
@@ -121,7 +122,7 @@ if [[ $_vm_exists -ne 0 ]];then
                     --priority "Spot" \
                     --max-price "-1" \
                     --eviction-policy "Delete" \
-                    --ssh-key-values "${HOME}/.ssh/id_rsa.pub" \
+                    --ssh-key-values "${HOME}/.ssh/${SSH_KEY_BASENAME}.pub" \
                     --custom-data setup.sh \
                     --public-ip-sku Standard \
                     --os-disk-delete-option Delete \
@@ -143,7 +144,7 @@ if [[ $_vm_exists -ne 0 ]];then
                     --security-type "Standard" \
                     --admin-username "${VM_USERNAME}" \
                     --size "${VM_SIZE}" \
-                    --ssh-key-values "${HOME}/.ssh/id_rsa.pub" \
+                    --ssh-key-values "${HOME}/.ssh/${SSH_KEY_BASENAME}.pub" \
                     --custom-data setup.sh \
                     --public-ip-sku Standard \
                     --os-disk-delete-option Delete \
@@ -172,5 +173,6 @@ jq -n \
     --arg vm_username "$VM_USERNAME" \
     --arg vm_disk_size "$VM_DISK_SIZE" \
     --arg uniq_label "$UNIQ_LABEL" \
+    --arg ssh_key_basename "$SSH_KEY_BASENAME" \
     '$ARGS.named'
 
