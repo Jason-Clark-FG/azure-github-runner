@@ -9,6 +9,10 @@ on:
         type: string
       VM_USERNAME:
         type: string
+      SSH_KEY_BASENAME:
+        type: string
+        required: false
+        default: "id_rsa"
     secrets:
       ARM_CLIENT_ID:
         required: true
@@ -61,11 +65,11 @@ jobs:
       - name: Download ssh key
         uses: actions/download-artifact@v4
         with:
-          name: ssh
+          name: ssh-${{ inputs.SSH_KEY_BASENAME }}
           path: ~/.ssh
 
       - name: Set ssh key permission
-        run: chmod 400 ~/.ssh/id_rsa
+        run: chmod 400 ~/.ssh/${{ inputs.SSH_KEY_BASENAME }}
 
       - name: login to azure
         uses: Azure/login@v2

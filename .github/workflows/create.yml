@@ -21,6 +21,10 @@ on:
         type: string
       STORAGE_BLOB_URI:
         type: string
+      SSH_KEY_BASENAME:
+        type: string
+        required: false
+        default: "id_rsa"
     secrets:
       ARM_CLIENT_ID:
         required: true
@@ -76,7 +80,7 @@ jobs:
           ref: main
 
       - name: Generate ssh key
-        run: ssh-keygen -b 2048 -f ~/.ssh/id_rsa -N ""
+        run: ssh-keygen -b 2048 -f ~/.ssh/${{ inputs.SSH_KEY_BASENAME }} -N ""
 
       - name: Config ssh
         run: touch ~/.ssh/known_hosts
@@ -88,8 +92,8 @@ jobs:
       - name: Upload ssh key
         uses: actions/upload-artifact@v4
         with:
-          name: ssh
-          path: ~/.ssh/
+          name: ssh-${{ inputs.SSH_KEY_BASENAME }}
+          path: ~/.ssh/${{ inputs.SSH_KEY_BASENAME }}*
           retention-days: 1
           overwrite: true
           include-hidden-files: true
