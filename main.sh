@@ -38,7 +38,9 @@ fi
 : "${STORAGE_BLOB_URI:=}"
 : "${SSH_KEY_BASENAME:=id_rsa}"
 
-test -z "${UNIQ_LABEL}" && UNIQ_LABEL=$(shuf -er -n8  {a..z} | paste -sd "")
+if [[ -z "${UNIQ_LABEL}" ]]; then
+    UNIQ_LABEL=$(shuf -er -n8  {a..z} | paste -sd "")
+fi
 LABEL="azure,${UNIQ_LABEL}"
 RUNNER_TOKEN=$(gh api -XPOST --jq '.token' "repos/${GITHUB_REPO}/actions/runners/registration-token")
 
@@ -49,8 +51,14 @@ if [[ $1 = '--destroy' ]]; then
     ssh-keyscan "${VM_IP}" >> "${HOME}/.ssh/known_hosts" 2> /dev/null
     ssh "${VM_USERNAME}@${VM_IP}" 'bash -s -- --destroy' < setup.sh 2> /dev/null
     ssh-keygen -R "${VM_IP}"
-    # Delete the resource group
-    az group delete --name "${RESOURCE_GROUP_NAME}" --no-wait --yes --output none
+    # Delete the vm
+    az vm delete --resource-group "${RESOURCE_GROUP_NAME}" --name "${VM_NAME}" --yes --output none
+    # Check if any other vms exist
+    _vms=$(az vm list --resource-group "${RESOURCE_GROUP_NAME}" --query "[].name" --output tsv)
+    if [[ -z "${_vms}" ]]; then
+        # Delete the resource group
+        az group delete --name "${RESOURCE_GROUP_NAME}" --no-wait --yes --output none
+    fi
     exit 0
 fi
 
@@ -164,15 +172,14 @@ fi
 VM_IP=$(az vm show --show-details --resource-group "${RESOURCE_GROUP_NAME}" --name "${VM_NAME}" --query publicIps --output tsv)
 
 jq -n \
-    --arg ip "$VM_IP" \
-    --arg resource_group "$RESOURCE_GROUP_NAME" \
-    --arg location "$LOCATION" \
-    --arg vm_image "$VM_IMAGE" \
-    --arg vm_size "$VM_SIZE" \
-    --arg vm_name "$VM_NAME" \
-    --arg vm_username "$VM_USERNAME" \
-    --arg vm_disk_size "$VM_DISK_SIZE" \
-    --arg uniq_label "$UNIQ_LABEL" \
-    --arg ssh_key_basename "$SSH_KEY_BASENAME" \
+    --arg ip "${VM_IP}" \
+    --arg resource_group "${RESOURCE_GROUP_NAME}" \
+    --arg location "${LOCATION}" \
+    --arg vm_image "${VM_IMAGE}" \
+    --arg vm_size "${VM_SIZE}" \
+    --arg vm_name "${VM_NAME}" \
+    --arg vm_username "${VM_USERNAME}" \
+    --arg vm_disk_size "${VM_DISK_SIZE}" \
+    --arg uniq_label "${UNIQ_LABEL}" \
+    --arg ssh_key_basename "${SSH_KEY_BASENAME}" \
     '$ARGS.named'
-

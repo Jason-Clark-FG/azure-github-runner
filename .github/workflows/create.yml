@@ -25,6 +25,9 @@ on:
         type: string
         required: false
         default: "id_rsa"
+      RUNNER_LABEL:
+        type: string
+        required: true
     secrets:
       ARM_CLIENT_ID:
         required: true
@@ -87,7 +90,7 @@ jobs:
 
       - name: Generate a unique label
         id: uniqlabel
-        run: 'echo label=$(shuf -er -n8  {a..z} | paste -sd "") >> "$GITHUB_OUTPUT"'
+        run: 'echo label=${{ inputs.RUNNER_LABEL }} >> "$GITHUB_OUTPUT"'
 
       - name: Upload ssh key
         uses: actions/upload-artifact@v4
@@ -147,4 +150,3 @@ jobs:
           UNIQ_LABEL: ${{ steps.uniqlabel.outputs.label }}
           SSH_KEY_BASENAME: ${{ inputs.SSH_KEY_BASENAME }}
         run: ./main.sh | jq -r 'keys[] as $k | "\($k)=\(.[$k])"' >> "$GITHUB_OUTPUT"
-
