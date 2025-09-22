@@ -51,7 +51,7 @@ if ! RUNNER_TOKEN=$(gh api -XPOST --jq '.token' "repos/${GITHUB_REPO}/actions/ru
 fi
 
 if [[ $1 = '--destroy' ]]; then
-    echo "Starting destroy operation for VM: ${VM_NAME}"
+    >&2 echo "Starting destroy operation for VM: ${VM_NAME}"
 
     # Set up destroy script
     template_setup
@@ -60,13 +60,13 @@ if [[ $1 = '--destroy' ]]; then
     cleanup_success=false
 
     # Try to get VM IP, but don't fail if we can't
-    echo "Retrieving VM IP address..."
+    >&2 echo "Retrieving VM IP address..."
     if VM_IP=$(az vm show --show-details --resource-group "${RESOURCE_GROUP_NAME}" --name "${VM_NAME}" --query publicIps --output tsv 2>/dev/null); then
         if [[ -n "$VM_IP" && "$VM_IP" != "null" ]]; then
-            echo "VM IP found: ${VM_IP}"
+            >&2 echo "VM IP found: ${VM_IP}"
 
             # Attempt SSH cleanup with proper error handling
-            echo "Attempting to clean up GitHub runner service via SSH..."
+            >&2 echo "Attempting to clean up GitHub runner service via SSH..."
 
             # Add VM to known hosts (ignore errors)
             ssh-keyscan -T 10 "${VM_IP}" >> "${HOME}/.ssh/known_hosts" 2>/dev/null || true
@@ -81,88 +81,88 @@ if [[ $1 = '--destroy' ]]; then
                 -o BatchMode=yes \
                 "${VM_USERNAME}@${VM_IP}" 'bash -s -- --destroy' < setup.sh 2>/dev/null; then
 
-                echo "Successfully cleaned up GitHub runner service"
+                >&2 echo "Successfully cleaned up GitHub runner service"
                 cleanup_success=true
             else
-                echo "Warning: SSH cleanup failed or timed out"
-                echo "Possible causes:"
-                echo "  - VM is unreachable (spot eviction, network issues)"
-                echo "  - SSH service not available"
-                echo "  - GitHub runner service already stopped"
-                echo "  - VM is in process of shutting down"
+                >&2 echo "Warning: SSH cleanup failed or timed out"
+                >&2 echo "Possible causes:"
+                >&2 echo "  - VM is unreachable (spot eviction, network issues)"
+                >&2 echo "  - SSH service not available"
+                >&2 echo "  - GitHub runner service already stopped"
+                >&2 echo "  - VM is in process of shutting down"
             fi
 
             # Clean up known hosts entry
             ssh-keygen -R "${VM_IP}" 2>/dev/null || true
         else
-            echo "Warning: VM IP is null or empty"
+            >&2 echo "Warning: VM IP is null or empty"
         fi
     else
-        echo "Warning: Could not retrieve VM information"
-        echo "VM may already be deleted or resource group may not exist"
+        >&2 echo "Warning: Could not retrieve VM information"
+        >&2 echo "VM may already be deleted or resource group may not exist"
     fi
 
     # Check if VM actually exists before trying to delete it
-    echo "Checking if VM exists before deletion..."
+    >&2 echo "Checking if VM exists before deletion..."
     if az vm show --resource-group "${RESOURCE_GROUP_NAME}" --name "${VM_NAME}" --output none 2>/dev/null; then
-        echo "VM exists, proceeding with deletion..."
+        >&2 echo "VM exists, proceeding with deletion..."
 
         # Delete the VM with retry logic
         max_delete_attempts=3
         delete_success=false
 
         for ((attempt=1; attempt<=max_delete_attempts; attempt++)); do
-            echo "VM deletion attempt ${attempt}/${max_delete_attempts}..."
+            >&2 echo "VM deletion attempt ${attempt}/${max_delete_attempts}..."
 
             if az vm delete --resource-group "${RESOURCE_GROUP_NAME}" --name "${VM_NAME}" --yes --output none 2>/dev/null; then
-                echo "VM deletion successful"
+                >&2 echo "VM deletion successful"
                 delete_success=true
                 break
             else
-                echo "VM deletion attempt ${attempt} failed"
+                >&2 echo "VM deletion attempt ${attempt} failed"
                 if [[ $attempt -lt $max_delete_attempts ]]; then
-                    echo "Waiting 30 seconds before retry..."
+                    >&2 echo "Waiting 30 seconds before retry..."
                     sleep 30
                 fi
             fi
         done
 
         if [[ "$delete_success" != "true" ]]; then
-            echo "Warning: VM deletion failed after ${max_delete_attempts} attempts"
-            echo "VM may have been deleted externally or there may be a permission issue"
+            >&2 echo "Warning: VM deletion failed after ${max_delete_attempts} attempts"
+            >&2 echo "VM may have been deleted externally or there may be a permission issue"
         fi
     else
-        echo "VM does not exist (already deleted or never created)"
+        >&2 echo "VM does not exist (already deleted or never created)"
     fi
 
     # Check for other VMs in the resource group
-    echo "Checking for other VMs in resource group..."
+    >&2 echo "Checking for other VMs in resource group..."
     if _vms=$(az vm list --resource-group "${RESOURCE_GROUP_NAME}" --query "[].name" --output tsv 2>/dev/null); then
         if [[ -z "${_vms}" ]]; then
-            echo "No other VMs found in resource group, initiating resource group deletion..."
+            >&2 echo "No other VMs found in resource group, initiating resource group deletion..."
 
             # Delete the resource group with error handling
             if az group delete --name "${RESOURCE_GROUP_NAME}" --no-wait --yes --output none 2>/dev/null; then
-                echo "Resource group deletion initiated successfully"
+                >&2 echo "Resource group deletion initiated successfully"
             else
-                echo "Warning: Resource group deletion failed"
-                echo "Manual cleanup may be required:"
-                echo "  az group delete --name ${RESOURCE_GROUP_NAME} --yes"
+                >&2 echo "Warning: Resource group deletion failed"
+                >&2 echo "Manual cleanup may be required:"
+                >&2 echo "  az group delete --name ${RESOURCE_GROUP_NAME} --yes"
             fi
         else
-            echo "Other VMs still exist in resource group:"
-            echo "${_vms}" | sed 's/^/  - /'
-            echo "Resource group will be preserved"
+            >&2 echo "Other VMs still exist in resource group:"
+            >&2 echo "${_vms}" | sed 's/^/  - /'
+            >&2 echo "Resource group will be preserved"
         fi
     else
-        echo "Warning: Could not list VMs in resource group (may already be deleted)"
+        >&2 echo "Warning: Could not list VMs in resource group (may already be deleted)"
     fi
 
     # Final status
     if [[ "$cleanup_success" == "true" ]]; then
-        echo "Destroy operation completed successfully"
+        >&2 echo "Destroy operation completed successfully"
     else
-        echo "Destroy operation completed with warnings (SSH cleanup failed but VM was deleted)"
+        >&2 echo "Destroy operation completed with warnings (SSH cleanup failed but VM was deleted)"
     fi
 
     exit 0
@@ -170,41 +170,41 @@ fi
 
 # Force destroy mode (skip SSH cleanup entirely)
 if [[ $1 = '--force-destroy' ]]; then
-    echo "Starting force destroy operation (skipping SSH cleanup)..."
+    >&2 echo "Starting force destroy operation (skipping SSH cleanup)..."
 
     # Skip SSH cleanup, go straight to VM deletion
-    echo "Skipping GitHub runner service cleanup"
+    >&2 echo "Skipping GitHub runner service cleanup"
 
     if az vm show --resource-group "${RESOURCE_GROUP_NAME}" --name "${VM_NAME}" --output none 2>/dev/null; then
-        echo "Force deleting VM: ${VM_NAME}"
+        >&2 echo "Force deleting VM: ${VM_NAME}"
         az vm delete --resource-group "${RESOURCE_GROUP_NAME}" --name "${VM_NAME}" --yes --output none || {
-            echo "Warning: Force VM deletion failed"
+            >&2 echo "Warning: Force VM deletion failed"
         }
     else
-        echo "VM does not exist"
+        >&2 echo "VM does not exist"
     fi
 
     # Check for other VMs and clean up resource group if empty
     _vms=$(az vm list --resource-group "${RESOURCE_GROUP_NAME}" --query "[].name" --output tsv 2>/dev/null || echo "")
     if [[ -z "${_vms}" ]]; then
-        echo "Force deleting resource group: ${RESOURCE_GROUP_NAME}"
+        >&2 echo "Force deleting resource group: ${RESOURCE_GROUP_NAME}"
         az group delete --name "${RESOURCE_GROUP_NAME}" --no-wait --yes --output none || {
-            echo "Warning: Force resource group deletion failed"
+            >&2 echo "Warning: Force resource group deletion failed"
         }
     fi
 
-    echo "Force destroy operation completed"
+    >&2 echo "Force destroy operation completed"
     exit 0
 fi
 
 # Create the resource group
-echo "Checking/creating resource group: ${RESOURCE_GROUP_NAME}"
+>&2 echo "Checking/creating resource group: ${RESOURCE_GROUP_NAME}"
 _rg_exists=$(az group show --name "${RESOURCE_GROUP_NAME}" --output none &> /dev/null;echo $?)
 if [[ $_rg_exists -ne 0 ]];then
-    echo "Creating resource group..."
+    >&2 echo "Creating resource group..."
     az group create --name "${RESOURCE_GROUP_NAME}" --location "${LOCATION}" --output none
 else
-    echo "Resource group already exists"
+    >&2 echo "Resource group already exists"
 fi
 
 # Set up setup script
@@ -213,15 +213,15 @@ template_setup
 _vm_exists=$(az vm show --resource-group "${RESOURCE_GROUP_NAME}" --name "${VM_NAME}" --output none &> /dev/null;echo $?)
 
 if [[ $_vm_exists -ne 0 ]];then
-    echo "Creating VM: ${VM_NAME}"
-    echo "  Type: ${VM_SPOT}"
-    echo "  Size: ${VM_SIZE}"
-    echo "  Image: ${VM_IMAGE}"
+    >&2 echo "Creating VM: ${VM_NAME}"
+    >&2 echo "  Type: ${VM_SPOT}"
+    >&2 echo "  Size: ${VM_SIZE}"
+    >&2 echo "  Image: ${VM_IMAGE}"
 
     if [[ ! -z ${STORAGE_BLOB_URI} ]];then
         case ${VM_SPOT} in
             "True")
-                echo "Creating spot instance VM with boot diagnostics storage..."
+                >&2 echo "Creating spot instance VM with boot diagnostics storage..."
                 # Create the spot instance vm
                 az vm create \
                     --resource-group "${RESOURCE_GROUP_NAME}" \
@@ -243,7 +243,7 @@ if [[ $_vm_exists -ne 0 ]];then
                     --verbose
             ;;
             *)
-                echo "Creating regular VM with boot diagnostics storage..."
+                >&2 echo "Creating regular VM with boot diagnostics storage..."
                 # Create the regular vm
                 az vm create \
                     --resource-group "${RESOURCE_GROUP_NAME}" \
@@ -265,7 +265,7 @@ if [[ $_vm_exists -ne 0 ]];then
     else
         case ${VM_SPOT} in
             "True")
-                echo "Creating spot instance VM with managed boot diagnostics..."
+                >&2 echo "Creating spot instance VM with managed boot diagnostics..."
                 # Create the spot instance vm
                 az vm create \
                     --resource-group "${RESOURCE_GROUP_NAME}" \
@@ -291,7 +291,7 @@ if [[ $_vm_exists -ne 0 ]];then
                     --verbose
             ;;
             *)
-                echo "Creating regular VM with managed boot diagnostics..."
+                >&2 echo "Creating regular VM with managed boot diagnostics..."
                 # Create the regular vm
                 az vm create \
                     --resource-group "${RESOURCE_GROUP_NAME}" \
@@ -315,22 +315,22 @@ if [[ $_vm_exists -ne 0 ]];then
             ;;
         esac
     fi
-    echo "VM creation completed"
+    >&2 echo "VM creation completed"
 else
-    echo "VM already exists: ${VM_NAME}"
+    >&2 echo "VM already exists: ${VM_NAME}"
 fi
 
 # Get VM IP with error handling
-echo "Retrieving VM IP address..."
+>&2 echo "Retrieving VM IP address..."
 if VM_IP=$(az vm show --show-details --resource-group "${RESOURCE_GROUP_NAME}" --name "${VM_NAME}" --query publicIps --output tsv 2>/dev/null); then
     if [[ -n "$VM_IP" && "$VM_IP" != "null" ]]; then
-        echo "VM IP: ${VM_IP}"
+        >&2 echo "VM IP: ${VM_IP}"
     else
-        echo "Warning: VM IP is null or empty"
+        >&2 echo "Warning: VM IP is null or empty"
         VM_IP=""
     fi
 else
-    echo "Warning: Could not retrieve VM IP"
+    >&2 echo "Warning: Could not retrieve VM IP"
     VM_IP=""
 fi
 
